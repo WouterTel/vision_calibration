@@ -18,8 +18,8 @@ class XMLRPC {
             }
         });
     }
-    ext_operation_calibration(cb){
-        this.client.methodCall('ext_operation_calibration', [], function(err, value){
+    ext_operation_calibration(initVec, cb){
+        this.client.methodCall('ext_operation_calibration', [initVec], function(err, value){
             if(cb){
                 cb(err, value);
             }

@@ -15,7 +15,7 @@ class AdvancedExtensionNodeContribution extends ExtensionNodeContribution {
 
         /* Component Events */
         this.uiHandler.on('btnStart', this.onBtnStart.bind(this));
-        this.uiHandler.on('btnStop', this.onBtnStop.bind(this));
+        this.uiHandler.on('btnInitCal', this.onInitCal.bind(this));
 
         /* Initialize */
         this.xmlrpcClient = null;
@@ -35,23 +35,26 @@ class AdvancedExtensionNodeContribution extends ExtensionNodeContribution {
         if(type === 'click'){
             if(this.daemonSvc.getDaemon().start()){
                 this.xmlrpcClient = new Xmlrpc(xmlrpcURL);
+                this.console.log(`Daemon is running.`)
                 this.uiHandler.render();
             }
         }
     }
-    onBtnStop(type){
+    onInitCal(type){
         if(type === 'click'){
-            this.xmlrpcClient.ext_operation_calibration(function(err, rst){
-                this.console.log(`${rst}`);
+            this.xmlrpcClient.ext_initial_calibration(function(err, rst){
+                this.dataModel.set('initVec', rst);
+                //this.console.log(`${rst}`);
             }.bind(this));
-            //if(this.daemonSvc.getDaemon().stop()){
-            //    this.xmlrpcClient = null;
-            //    this.uiHandler.render();
-           // }
         }
     }
     getXMLRPCClient(){
         return this.xmlrpcClient;
+    }
+    getInitialCalibration(){
+        let initVec = this.dataModel.get('initVec');
+        //this.console.log(`${initVec}`);
+        return initVec;
     }
 }
 

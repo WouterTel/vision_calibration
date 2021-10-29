@@ -23,10 +23,19 @@ class AdvancedProgramNodeContribution extends ProgramNodeContribution {
     openView(){}
     closeView(){}
     generateScript(enterWriter, exitWriter){
+        let initVec = this.extension.getInitialCalibration();
+       
+        let deltaVec = [0,0,0,0,0,0];
         this.xmlrpcClient = new Xmlrpc(xmlrpcURL);
-        this.xmlrpcClient.ext_initial_calibration(function(err, rst){
-            this.console.log(`${rst}`);
+        
+        this.xmlrpcClient.ext_operation_calibration(initVec,function(err, rst){
+            //this.dataModel.set('deltaVec',rst)
         }.bind(this));
+
+        this.console.log(`${deltaVec}`);
+        //deltaVec = this.dataModel.get('deltaVec');
+        //this.console.log(`${deltaVec}`);
+        //enterWriter.appendLine(`let deltaVec = [${deltaVec}];`);
     }
     isDefined(){
        // return (
@@ -36,12 +45,13 @@ class AdvancedProgramNodeContribution extends ProgramNodeContribution {
        // );
        return true;
     }
-
+/*
     onSbShowType(type, data){
         if(type === 'select'){
             this.dataModel.set('showType', data.selected);
         }
     }
+    */
 }
 
 module.exports = AdvancedProgramNodeContribution;
