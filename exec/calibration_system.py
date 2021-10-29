@@ -1,20 +1,22 @@
-from tkinter import Frame
 import cv2
 import numpy as np
 import math
 import pymsgbox
-import os
 from xmlrpc.server import SimpleXMLRPCServer
 
 # Defining the dimensions of checkerboard
 CHECKERBOARD = (7,10)   # (heigth,width)
-check_size = 23     # size of squares in mm
+check_size = 22.3     # size of squares in mm
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
 # Defining the coördinates of the checkerboard crosspoints that the camera will detect
 objp = np.zeros((1, CHECKERBOARD[0]*CHECKERBOARD[1], 3), np.float32)
 objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 objp = objp*check_size
+
+# Define internal camera variables
+mtx = np.matrix([[1.51832488e+03, 0.00000000e+00, 1.29086673e+03],[0.00000000e+00, 1.51879862e+03, 1.01228124e+03],[0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+dist = np.array([-0.33306284,  0.19744536,  0.00151984, -0.00074798, -0.19647672])
 
 def _get_rot_dist():
 
@@ -35,8 +37,8 @@ def _get_rot_dist():
     # Load intrinsic variables of camera
     #mtx = np.load('calibration/mtx.npy')
     #dist = np.load('calibration/dist.npy')
-    mtx = np.load('mtx.npy')
-    dist = np.load('dist.npy')
+    #mtx = np.load('mtx.npy')
+    #dist = np.load('dist.npy')
 
     
     # Calculate distance vector and rotation matrix
@@ -117,8 +119,10 @@ def calibrate_camera():
     detected crosspoints (imgpoints)
     """
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
-    np.save('calibration/mtx.npy',mtx)
-    np.save('calibration/dist.npy',dist)
+    #np.save('calibration/mtx.npy',mtx)
+    #np.save('calibration/dist.npy',dist)
+    print(mtx)
+    print(dist)
 
 def initial_calibration():
     try:
@@ -148,7 +152,8 @@ def operation_calibration(initVec):
     for i in range (0,3):
         calTvec[i] = initVec[i]
         for q in range(0,3):
-            calRotMat[i,q] = initVec[q+(3*i)]
+            calRotMat[i,q] = initVec[q+(3*(i+1))]
+
 
     try:
         (operRotMat, operTvec) = _get_rot_dist()
@@ -159,14 +164,18 @@ def operation_calibration(initVec):
 
     tvecRel = operTvec - calTvec
     rvecRel = _get_euler_angles(calRotMat,operRotMat)
-    #pymsgbox.alert('{tvecRel}'.format(tvecRel = tvecRel),'Pas op!')
 
     return [tvecRel.item(0),tvecRel.item(1),tvecRel.item(2),rvecRel[0],rvecRel[1],rvecRel[2]]
+
+    
+def returnHello():
+    return 'Hello'
 
 
 server = SimpleXMLRPCServer(("localhost", 60050))
 server.register_function(calibrate_camera, "ext_calibrate_camera")
 server.register_function(initial_calibration, "ext_initial_calibration")
 server.register_function(operation_calibration, "ext_operation_calibration")
+server.register_function(returnHello, "ext_returnHello")
 #response = pymsgbox.alert('Tijd om op te staan!','Pas op!')
 server.serve_forever()

@@ -33,18 +33,21 @@ class AdvancedExtensionNodeContribution extends ExtensionNodeContribution {
 
     onBtnStart(type){
         if(type === 'click'){
+            
             if(this.daemonSvc.getDaemon().start()){
                 this.xmlrpcClient = new Xmlrpc(xmlrpcURL);
                 this.console.log(`Daemon is running.`)
                 this.uiHandler.render();
             }
+            
         }
     }
     onInitCal(type){
         if(type === 'click'){
             this.xmlrpcClient.ext_initial_calibration(function(err, rst){
+
                 this.dataModel.set('initVec', rst);
-                //this.console.log(`${rst}`);
+
             }.bind(this));
         }
     }
@@ -53,7 +56,7 @@ class AdvancedExtensionNodeContribution extends ExtensionNodeContribution {
     }
     getInitialCalibration(){
         let initVec = this.dataModel.get('initVec');
-        //this.console.log(`${initVec}`);
+        this.console.log(`${initVec}`);
         return initVec;
     }
 }

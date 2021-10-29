@@ -25,6 +25,13 @@ class XMLRPC {
             }
         });
     }
+    ext_returnHello(cb){
+        this.client.methodCall('ext_returnHello', [], function(err, value){
+            if(cb){
+                cb(err, value);
+            }
+        });
+    }
 }
 
 module.exports = XMLRPC;
