@@ -23,12 +23,14 @@ class AdvancedProgramNodeContribution extends ProgramNodeContribution {
     openView(){}
     closeView(){}
     generateScript(enterWriter, exitWriter){
+        
         this.xmlrpcClient = new Xmlrpc(xmlrpcURL);
         let initVec = this.extension.getInitialCalibration();
         enterWriter.appendLine(`let advancedXMLClient = rpcFactory('xmlrpc', '${xmlrpcURL}');`);
         enterWriter.appendLine(`let vec = [${initVec[0]},${initVec[1]},${initVec[2]},${initVec[3]},${initVec[4]},${initVec[5]},${initVec[6]},${initVec[7]},${initVec[8]},${initVec[9]},${initVec[10]},${initVec[11]}];`);
         enterWriter.appendLine(`let deltaVec = advancedXMLClient.ext_operation_calibration(vec);`);
         enterWriter.appendLine(`console.log(deltaVec);`);
+        
         
     }
     isDefined(){

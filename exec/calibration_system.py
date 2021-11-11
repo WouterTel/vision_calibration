@@ -2,14 +2,14 @@ import cv2
 import numpy as np
 import math
 import pymsgbox
-from xmlrpc.server import SimpleXMLRPCServer
+from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 # Defining the dimensions of checkerboard
 CHECKERBOARD = (7,10)   # (heigth,width)
 check_size = 22.3     # size of squares in mm
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-# Defining the coördinates of the checkerboard crosspoints that the camera will detect
+# Defining the coordinates of the checkerboard crosspoints that the camera will detect
 objp = np.zeros((1, CHECKERBOARD[0]*CHECKERBOARD[1], 3), np.float32)
 objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 objp = objp*check_size
@@ -26,20 +26,12 @@ def _get_rot_dist():
 
     #img = cv2.imread(image)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    ret, corners = cv2.findChessboardCorners(gray, CHECKERBOARD, cv2.CALIB_CB_ADAPTIVE_THRESH+
-            cv2.CALIB_CB_FAST_CHECK+cv2.CALIB_CB_NORMALIZE_IMAGE)
+    ret, corners = cv2.findChessboardCorners(gray, CHECKERBOARD)
     if not (ret):
         raise ValueError()
 
     # Refine pixel coordinates
     corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
-
-    # Load intrinsic variables of camera
-    #mtx = np.load('calibration/mtx.npy')
-    #dist = np.load('calibration/dist.npy')
-    #mtx = np.load('mtx.npy')
-    #dist = np.load('dist.npy')
-
     
     # Calculate distance vector and rotation matrix
     ret,rvec,tvec = cv2.solvePnP(objp, corners2, mtx, dist)
@@ -56,10 +48,6 @@ def _get_euler_angles (rotMatBase, rotMatCal):
     rx = rx*180/math.pi
     ry = ry*180/math.pi
     rz = rz*180/math.pi
-    
-    #print ('rx: {rx}'.format(rx = rx))
-    #print ('ry: {ry}'.format(ry = ry))
-    #print ('rz: {rz}'.format(rz = rz))
 
     return (rx, ry, rz)
 
@@ -119,8 +107,7 @@ def calibrate_camera():
     detected crosspoints (imgpoints)
     """
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
-    #np.save('calibration/mtx.npy',mtx)
-    #np.save('calibration/dist.npy',dist)
+
     print(mtx)
     print(dist)
 
@@ -129,8 +116,7 @@ def initial_calibration():
         (calRotMat, calTvec) = _get_rot_dist()
     except ValueError:
         return "Something went wrong"
-    #np.save('calibration/calRotMat.npy',calRotMat)
-    #np.save('calibration/calTvec.npy',calTvec)
+
     totvec = []
     for i in calTvec:
         totvec.append(i.item())
@@ -141,11 +127,6 @@ def initial_calibration():
 
 def operation_calibration(initVec):
 
-    #try:
-    #    calRotMat = np.load('calibration/calRotMat.npy')    
-    #    calTvec = np.load('calibration/calTvec.npy')
-    #except FileNotFoundError:
-    #    return "First run initial calibration"
     calRotMat = np.zeros([3,3])
     calTvec = np.zeros([3,1])
 
@@ -159,8 +140,6 @@ def operation_calibration(initVec):
         (operRotMat, operTvec) = _get_rot_dist()
     except ValueError:
         return "Couldn't get rotation and dist vectors"
-    #tvecRel = calTvec - operTvec
-    #rvecRel = _get_euler_angles(operRotMat,calRotMat)
 
     tvecRel = operTvec - calTvec
     rvecRel = _get_euler_angles(calRotMat,operRotMat)
@@ -172,10 +151,11 @@ def returnHello():
     return 'Hello'
 
 
-server = SimpleXMLRPCServer(("localhost", 60050))
+host = 'localhost'
+port = 60050
+server = SimpleXMLRPCServer((host, port))
 server.register_function(calibrate_camera, "ext_calibrate_camera")
 server.register_function(initial_calibration, "ext_initial_calibration")
 server.register_function(operation_calibration, "ext_operation_calibration")
 server.register_function(returnHello, "ext_returnHello")
-#response = pymsgbox.alert('Tijd om op te staan!','Pas op!')
 server.serve_forever()

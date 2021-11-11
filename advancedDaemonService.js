@@ -5,9 +5,7 @@ class AdvancedDaemonService extends DaemonService{
   constructor() {
       super();
 
-      //this.executablePath = path.join(__dirname, 'exec', 'calculator.py');
       this.executablePath = path.join(__dirname, 'exec', 'calibration_system.py');
-      //this.executablePath = path.join(__dirname, 'exec', 'cameraCheck.py');
       this.daemonContribution = null;
     }
 

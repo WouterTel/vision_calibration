@@ -22,7 +22,11 @@ class AdvancedExtensionNodeContribution extends ExtensionNodeContribution {
         if(!this.dataModel.has('userMsg')){
             this.dataModel.set('userMsg', '(no message)');
         }
-
+        /* Update daemon status to UI */
+        this.timer = setInterval(function() {
+            this.components['lbStatus'].setText('Daemon status : '+this.daemonSvc.getDaemon().getState());
+            this.uiHandler.render();
+        }.bind(this), 500);
     }
 
     openView(){}
@@ -47,6 +51,7 @@ class AdvancedExtensionNodeContribution extends ExtensionNodeContribution {
             this.xmlrpcClient.ext_initial_calibration(function(err, rst){
 
                 this.dataModel.set('initVec', rst);
+                this.console.log(`${rst}`)
 
             }.bind(this));
         }
