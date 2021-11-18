@@ -146,10 +146,6 @@ def operation_calibration(initVec):
 
     return [tvecRel.item(0),tvecRel.item(1),tvecRel.item(2),rvecRel[0],rvecRel[1],rvecRel[2]]
 
-    
-def returnHello():
-    return 'Hello'
-
 
 host = 'localhost'
 port = 60050
@@ -157,5 +153,4 @@ server = SimpleXMLRPCServer((host, port))
 server.register_function(calibrate_camera, "ext_calibrate_camera")
 server.register_function(initial_calibration, "ext_initial_calibration")
 server.register_function(operation_calibration, "ext_operation_calibration")
-server.register_function(returnHello, "ext_returnHello")
 server.serve_forever()
